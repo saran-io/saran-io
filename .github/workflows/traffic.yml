@@ -1,0 +1,41 @@
+name: Collect GitHub traffic
+
+# GitHub's traffic API only retains 14 days, so this has to run at least that
+# often to avoid permanent gaps in the history.
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: traffic
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Collect traffic and mirror to Plausible
+        env:
+          # TRAFFIC_TOKEN is a PAT with repo scope — the default GITHUB_TOKEN
+          # can only read traffic for this repo, not the others.
+          GH_TOKEN: ${{ secrets.TRAFFIC_TOKEN || secrets.GITHUB_TOKEN }}
+          PLAUSIBLE_DOMAIN: ${{ vars.PLAUSIBLE_DOMAIN }}
+        run: node scripts/collect-traffic.mjs
+
+      - name: Commit updated history
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --staged --quiet || git commit -m "chore: traffic snapshot $(date -u +%Y-%m-%d)"
+          git push
