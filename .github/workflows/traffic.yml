@@ -26,9 +26,10 @@ jobs:
 
       - name: Collect traffic and mirror to Plausible
         env:
-          # TRAFFIC_TOKEN is a PAT with repo scope — the default GITHUB_TOKEN
-          # can only read traffic for this repo, not the others.
-          GH_TOKEN: ${{ secrets.TRAFFIC_TOKEN || secrets.GITHUB_TOKEN }}
+          # Must be a PAT with repo scope. The default GITHUB_TOKEN cannot list
+          # your repos or read traffic for anything but this one, so falling
+          # back to it would silently collect a single repo.
+          GH_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
           PLAUSIBLE_DOMAIN: ${{ vars.PLAUSIBLE_DOMAIN }}
         run: node scripts/collect-traffic.mjs
 

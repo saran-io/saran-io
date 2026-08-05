@@ -35,7 +35,11 @@ const SYNTHETIC_IP = '203.0.113.1'; // TEST-NET-3, never a real client
 const SYNTHETIC_UA = 'saran-io-traffic-mirror/1.0 (+https://github.com/saran-io/saran-io)';
 
 if (!GH_TOKEN) {
-  console.error('GH_TOKEN is required');
+  console.error(
+    'GH_TOKEN is required. In CI this comes from the TRAFFIC_TOKEN secret — a PAT\n' +
+      'with repo scope. The default GITHUB_TOKEN will not work: the traffic API\n' +
+      'needs push access to each repo, and listing repos needs a user-level token.',
+  );
   process.exit(1);
 }
 
